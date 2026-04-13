@@ -1,0 +1,90 @@
+int x;
+int y;
+int z;
+int arr[10];
+int result;
+void main;
+
+x = 10;
+y = 20;
+z = x + y - 5;
+result = z + 100;
+
+if x < y {
+    x = x + 1;
+}
+
+if y > x {
+    y = y - 1;
+} else {
+    y = y + 2;
+}
+
+if x <= y {
+    z = z + 1;
+}
+
+if y >= x {
+    z = z + 2;
+}
+
+if x == y {
+    result = 0;
+}
+
+if x != y {
+    result = 1;
+}
+
+while x < 20 {
+    x = x + 1;
+    y = y - 1;
+}
+
+arr[0] = 1;
+arr[1] = 2;
+arr[2] = arr[0] + arr[1];
+arr[3] = arr[2] * 4;
+arr[4] = arr[3] / 2;
+
+foo(x);
+bar(x, y);
+baz(arr[2], z, result);
+
+return x;
+return y + z;
+
+/* comment start */
+x = x + 1;
+y = y + 2;
+/* comment end */
+
+int contador;
+contador = 123;
+contador = contador + 456;
+contador = contador - 789;
+
+void funcion;
+int variableLarga;
+variableLarga = contador + x + y + z;
+
+/* pruebas con muchos simbolos */
+if (x < y) {
+    result = result + 1;
+}
+
+if (x > y) {
+    result = result - 1;
+}
+
+arr[5] = (x);
+arr[6] = (y);
+arr[7] = (z);
+
+/* errores lexicos esperados abajo */
+a = 3abc;
+b = @;
+c = 12hola;
+d = x # y;
+e = 99zz;
+f = !;

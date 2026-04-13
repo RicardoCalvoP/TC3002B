@@ -43,6 +43,5 @@ class TokenType(Enum):
     # other tokens
     ID = 'id'
     NUM = 'num'
-    LETTER = 'letter'
-    DIGIT = 'digit'
     ENDFILE = 'endfile'
+    ERROR = 'error'

@@ -144,3 +144,123 @@ To create the DFA, it is not required to do the conversion from regular expressi
 The user manual will not be necessary because the definition of the C- language and the way the program will be tested have already been given.
 
 If this project were to be delivered to a third party, it is essential to deliver all the language definition and the way the user should use the lexical analyzer, step by step.
+
+```dot
+digraph finite_state_machine {
+	fontname="Helvetica,Arial,sans-serif"
+	node [fontname="Helvetica,Arial,sans-serif"]
+	edge [fontname="Helvetica,Arial,sans-serif"]
+	rankdir=LR;
+	node [shape = doublecircle]; 21; 22; 23; 24; 25; 26; 27; 28; 29; 30; 31; 32; 33;
+	node [shape = circle];
+	0 -> 0 [label = "blank"];
+	0 -> 1 [label = "[0-9]"];
+  0 -> 2 [label = "[a-zA-Z]"];
+	0 -> 3 [label = "/"];
+	0 -> 4 [label = "*"];
+	0 -> 5 [label = "<"];
+	0 -> 6 [label = ">"];
+	0 -> 7 [label = "="];
+	0 -> 8 [label = "!"];
+
+	0 -> 9 [label = "+"];
+	0 -> 10 [label = "-"];
+	0 -> 11 [label = ";"];
+	0 -> 12 [label = ","];
+	0 -> 13 [label = "("];
+	0 -> 14 [label = ")"];
+	0 -> 15 [label = "{"];
+	0 -> 16 [label = "}"];
+	0 -> 17 [label = "["];
+	0 -> 18 [label = "]"];
+	0 -> 19 [label = "EOF"];
+	0 -> 20 [label = "error"];
+
+	1 -> 1 [label = "[0-9]"]
+	// NUM
+  1 -> 21 [label = "blank | special symbol | EOF"];
+
+	2 -> 2 [label = "[a-zA-Z]"]
+	// ID
+  2 -> 22 [label = "blank | special symbol | EOF"];
+
+	// DIV
+  3 -> 23 [label = "not '*'"];
+	// LCOMMENT
+  3 -> 24 [label = "*"];
+
+	// MULTIPLICATION
+	4 -> 25 [label = "not '/'"]
+	// RCOMMENT
+	4 -> 26 [label = "/"]
+
+	// LT
+	5 -> 27 [label = "not '='"]
+	// LTEQ
+	5 -> 28 [label = "="]
+
+	// GT
+	6 -> 29 [label = "not '='"]
+	// GTEQ
+	6 -> 30 [label = "="]
+
+	// ASSIGN
+	7 -> 31 [label = "not '='"]
+	// EQ
+	7 -> 32 [label = "="]
+	// NEQ
+	8 -> 33 [label = "="]
+
+}
+```
+
+| State | blank | letter | digit |  /  | \*  |  <  |  >  |  =  |  !  |  +  |  -  |  ;  |  ,  |  (  |  )  |  {  |  }  |  [  |  ]  | EOF | other |
+| ----: | :---: | :----: | :---: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :---: |
+|     0 |   0   |   2    |   1   |  3  |  4  |  5  |  6  |  7  |  8  |  9  | 10  | 11  | 12  | 13  | 14  | 15  | 16  | 17  | 18  | 19  |  20   |
+|     1 |  21   |   21   |   1   | 21  | 21  | 21  | 21  | 21  | 21  | 21  | 21  | 21  | 21  | 21  | 21  | 21  | 21  | 21  | 21  | 21  |  20   |
+|     2 |  22   |   2    |  22   | 22  | 22  | 22  | 22  | 22  | 22  | 22  | 22  | 22  | 22  | 22  | 22  | 22  | 22  | 22  | 22  | 22  |  20   |
+|     3 |  23   |   23   |  23   | 23  | 24  | 23  | 23  | 23  | 23  | 23  | 23  | 23  | 23  | 23  | 23  | 23  | 23  | 23  | 23  | 23  |  20   |
+|     4 |  25   |   25   |  25   | 26  | 25  | 25  | 25  | 25  | 25  | 25  | 25  | 25  | 25  | 25  | 25  | 25  | 25  | 25  | 25  | 25  |  20   |
+|     5 |  27   |   27   |  27   | 27  | 27  | 27  | 27  | 28  | 27  | 27  | 27  | 27  | 27  | 27  | 27  | 27  | 27  | 27  | 27  | 27  |  20   |
+|     6 |  29   |   29   |  29   | 29  | 29  | 29  | 29  | 30  | 29  | 29  | 29  | 29  | 29  | 29  | 29  | 29  | 29  | 29  | 29  | 29  |  20   |
+|     7 |  31   |   31   |  31   | 31  | 31  | 31  | 31  | 32  | 31  | 31  | 31  | 31  | 31  | 31  | 31  | 31  | 31  | 31  | 31  | 31  |  20   |
+|     8 |  20   |   20   |  20   | 20  | 20  | 20  | 20  | 33  | 20  | 20  | 20  | 20  | 20  | 20  | 20  | 20  | 20  | 20  | 20  | 20  |  20   |
+
+### State meanings
+
+0 = START
+1 = IN_NUM
+2 = IN_ID
+3 = SAW_SLASH
+4 = SAW_STAR
+5 = SAW_LT
+6 = SAW_GT
+7 = SAW_EQ
+8 = SAW_BANG
+
+9 = PLUS
+10 = MINUS
+11 = SEMICOLON
+12 = COMMA
+13 = LPAREN
+14 = RPAREN
+15 = LBRACE
+16 = RBRACE
+17 = LBRACKET
+18 = RBRACKET
+19 = ENDFILE
+20 = ERROR
+
+21 = NUM_FINAL
+22 = ID_FINAL
+23 = DIVIDE
+24 = LCOMMENT
+25 = TIMES
+26 = RCOMMENT
+27 = LT
+28 = LTEQ
+29 = GT
+30 = GTEQ
+31 = ASSIGN
+32 = EQ
+33 = NEQ
