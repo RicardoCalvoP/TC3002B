@@ -145,6 +145,12 @@ The user manual will not be necessary because the definition of the C- language 
 
 If this project were to be delivered to a third party, it is essential to deliver all the language definition and the way the user should use the lexical analyzer, step by step.
 
+---
+
+<h3>Delivery</h3>
+
+<h4>DFA</h4>
+
 ```dot
 digraph finite_state_machine {
 	fontname="Helvetica,Arial,sans-serif"
@@ -214,6 +220,8 @@ digraph finite_state_machine {
 }
 ```
 
+<h4>States Table</h4>
+
 | State | blank | letter | digit |  /  | \*  |  <  |  >  |  =  |  !  |  +  |  -  |  ;  |  ,  |  (  |  )  |  {  |  }  |  [  |  ]  | EOF | other |
 | ----: | :---: | :----: | :---: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :---: |
 |     0 |   0   |   2    |   1   |  3  |  4  |  5  |  6  |  7  |  8  |  9  | 10  | 11  | 12  | 13  | 14  | 15  | 16  | 17  | 18  | 19  |  20   |
@@ -226,7 +234,7 @@ digraph finite_state_machine {
 |     7 |  31   |   31   |  31   | 31  | 31  | 31  | 31  | 32  | 31  | 31  | 31  | 31  | 31  | 31  | 31  | 31  | 31  | 31  | 31  | 31  |  20   |
 |     8 |  20   |   20   |  20   | 20  | 20  | 20  | 20  | 33  | 20  | 20  | 20  | 20  | 20  | 20  | 20  | 20  | 20  | 20  | 20  | 20  |  20   |
 
-### State meanings
+<h5>State meanings</h5>
 
 0 = START
 1 = IN_NUM
