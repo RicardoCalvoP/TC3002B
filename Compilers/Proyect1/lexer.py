@@ -106,67 +106,78 @@ def getToken(imprime=True):
 
         if state == 9:
             token = TokenType.PLUS
-            print(f"Token: {token}, Lexema: +")
             globalTypes.posicion += 1
+            if imprime:
+                print(f"Token: {token}, Lexema: +")
             return token, '+'
 
         elif state == 10:
             token = TokenType.MINUS
-            print(f"Token: {token}, Lexema: -")
             globalTypes.posicion += 1
+            if imprime:
+                print(f"Token: {token}, Lexema: -")
             return token, '-'
 
         elif state == 11:
             token = TokenType.SEMICOLON
-            print(f"Token: {token}, Lexema: ;")
             globalTypes.posicion += 1
+            if imprime:
+                print(f"Token: {token}, Lexema: ;")
             return token, ';'
 
         elif state == 12:
             token = TokenType.COMMA
-            print(f"Token: {token}, Lexema: ,")
             globalTypes.posicion += 1
+            if imprime:
+                print(f"Token: {token}, Lexema: ,")
             return token, ','
 
         elif state == 13:
             token = TokenType.LPAREN
-            print(f"Token: {token}, Lexema: (")
             globalTypes.posicion += 1
+            if imprime:
+                print(f"Token: {token}, Lexema: (")
             return token, '('
 
         elif state == 14:
             token = TokenType.RPAREN
-            print(f"Token: {token}, Lexema: )")
             globalTypes.posicion += 1
+            if imprime:
+                print(f"Token: {token}, Lexema: )")
             return token, ')'
 
         elif state == 15:
             token = TokenType.LBRACE
-            print(f"Token: {token}," + " Lexema: {")
             globalTypes.posicion += 1
+            if imprime:
+                print(f"Token: {token}," + " Lexema: {")
             return token, '{'
 
         elif state == 16:
             token = TokenType.RBRACE
-            print(f"Token: {token}," + "Lexema: }")
             globalTypes.posicion += 1
+            if imprime:
+                print(f"Token: {token}," + "Lexema: }")
             return token, '}'
 
         elif state == 17:
             token = TokenType.LBRACKET
-            print(f"Token: {token}, Lexema: [")
             globalTypes.posicion += 1
+            if imprime:
+                print(f"Token: {token}, Lexema: [")
             return token, '['
 
         elif state == 18:
             token = TokenType.RBRACKET
-            print(f"Token: {token}, Lexema: ]")
             globalTypes.posicion += 1
+            if imprime:
+                print(f"Token: {token}, Lexema: ]")
             return token, ']'
 
         elif state == 21:
             token = TokenType.NUM
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 22:
@@ -183,86 +194,101 @@ def getToken(imprime=True):
                 token = reserved_words[lexema]
             else:
                 token = TokenType.ID
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 23:
             token = TokenType.DIVIDE
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 24:
             token = TokenType.LCOMMENT
             lexema += char
             globalTypes.posicion += 1
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 25:
             token = TokenType.TIMES
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 26:
             token = TokenType.RCOMMENT
             lexema += char
             globalTypes.posicion += 1
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 27:
             token = TokenType.LT
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 28:
             token = TokenType.LTEQ
             lexema += char
             globalTypes.posicion += 1
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 29:
             token = TokenType.GT
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 30:
             token = TokenType.GTEQ
             lexema += char
             globalTypes.posicion += 1
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 31:
             token = TokenType.ASSIGN
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 32:
             token = TokenType.EQ
             lexema += char
             globalTypes.posicion += 1
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 33:
             token = TokenType.NEQ
             lexema += char
             globalTypes.posicion += 1
-            print(f"Token: {token}, Lexema: {lexema}")
+            if imprime:
+                print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
         elif state == 19:
             token = TokenType.ENDFILE
-            print(f"Token: {token}, Lexema: $")
-            state = 0
+            if imprime:
+                print(f"Token: {token}, Lexema: $")
             return token, '$'
 
         elif state == 20:
             token = TokenType.ERROR
-            print(f"Token: {token}, Lexema: {lexema}")
-            state = 0
+            globalTypes.posicion += 1
+            if imprime:
+                message = f"Token: {token}, Lexema: {lexema}{char}"
+                print(f"Token: {token}, Lexema: {lexema}{char}")
+                print(' ' * (len(message)-1) + '^')
             return token, lexema
 
         if state != 0:

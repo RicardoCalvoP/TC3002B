@@ -12,5 +12,5 @@ if __name__ == "__main__":
     globales(programa, posicion, progLong)
     token, tokenString = getToken(True)
 
-    while (token != TokenType.ENDFILE and token != TokenType.ERROR):
-        token, tokenString = getToken(True)
+    while (token != TokenType.ENDFILE):
+        token, tokenString = getToken()
