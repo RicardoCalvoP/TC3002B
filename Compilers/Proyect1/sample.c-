@@ -1,90 +1,145 @@
-int x;
-int y;
-int z;
-int arr[10];
-int result;
-void main;
+C- (C-minus)
 
-x = 10;
-y = 20;
-z = x + y - 5;
-result = z + 100;
+Un lenguaje para un proyecto de compilador (Lauden, 2004)
 
-if x < y {
-    x = x + 1;
+Es un subconjunto considerablemente restringido de C.
+Contiene:
+Enteros
+Arreglos de enteros
+Funciones (con tipo o void)
+Declaraciones (estáticas) locales y globales
+Funciones recursivas (simples)
+Condicional if-else
+Ciclo while
+Función input() (lee del teclado)
+Función output() (escribe a pantalla)
+Un programa es una secuencia de declaraciones de variables y funciones.
+Debe existir una función main.
+La ejecución inicia en main.
+Léxico de C-
+1. Palabras reservadas
+else if int return void while
+
+Todas deben escribirse en minúsculas.
+
+2. Símbolos especiales
++ - * / < <= > >= == != = ; , ( ) [ ] { } /* */
+3. Tokens básicos
+ID  = letra letra*
+NUM = dígito dígito*
+
+letra  = a..z | A..Z
+dígito = 0..9
+4. Espacios en blanco
+Incluyen: espacios, tabs y saltos de línea
+Se ignoran, excepto para separar tokens
+5. Comentarios
+/* ... */
+Pueden ir en cualquier lugar donde haya espacios
+Pueden ser multilínea
+No pueden anidarse
+No pueden aparecer dentro de tokens
+Sintaxis (BNF simplificada)
+program → declaration-list
+
+declaration-list → declaration-list declaration | declaration
+
+declaration → var-declaration | fun-declaration
+
+var-declaration → type-specifier ID ;
+                | type-specifier ID [ NUM ] ;
+
+type-specifier → int | void
+
+fun-declaration → type-specifier ID ( params ) compound-stmt
+
+params → param-list | void
+
+param-list → param-list , param | param
+
+param → type-specifier ID | type-specifier ID [ ]
+
+compound-stmt → { local-declarations statement-list }
+
+statement-list → statement-list statement | ε
+
+statement → expression-stmt
+          | compound-stmt
+          | selection-stmt
+          | iteration-stmt
+          | return-stmt
+Expresiones
+expression → var = expression | simple-expression
+
+simple-expression → additive-expression relop additive-expression
+                  | additive-expression
+
+relop → <= | < | > | >= | == | !=
+
+additive-expression → additive-expression addop term | term
+
+addop → + | -
+
+term → term mulop factor | factor
+
+mulop → * | /
+
+factor → ( expression ) | var | call | NUM
+Funciones
+call → ID ( args )
+
+args → arg-list | empty
+
+arg-list → arg-list , expression | expression
+Semántica (puntos clave)
+Variables:
+Solo tipo int
+Arreglos indexados desde 0 a NUM-1
+Funciones:
+void no retorna valor
+int sí retorna
+Parámetros:
+Por valor (enteros)
+Por referencia (arreglos)
+No hay punteros
+No hay chequeo de límites en arreglos
+Funciones predefinidas
+int input(void)
+void output(int x)
+input() lee un entero
+output(x) imprime un entero
+Ejemplo (mcd)
+int gcd (int u, int v)
+{
+  if (v == 0) return u;
+  else return gcd(v, u - u/v * v);
 }
+Ejemplo (ordenamiento)
+int x[10];
 
-if y > x {
-    y = y - 1;
-} else {
-    y = y + 2;
+int minloc(int a[], int low, int high)
+{
+  int i; int x; int k;
+  k = low;
+  x = a[low];
+  i = low + 1;
+  while (i < high)
+  {
+    if (a[i] < x)
+    {
+      x = a[i];
+      k = i;
+    }
+    i = i + 1;
+  }
+  return k;
 }
+Lo importante para TU lexer
 
-if x <= y {
-    z = z + 1;
-}
+Esto es lo que realmente debes respetar:
 
-if y >= x {
-    z = z + 2;
-}
-
-if x == y {
-    result = 0;
-}
-
-if x != y {
-    result = 1;
-}
-
-while x < 20 {
-    x = x + 1;
-    y = y - 1;
-}
-
-arr[0] = 1;
-arr[1] = 2;
-arr[2] = arr[0] + arr[1];
-arr[3] = arr[2] * 4;
-arr[4] = arr[3] / 2;
-
-foo(x);
-bar(x, y);
-baz(arr[2], z, result);
-
-return x;
-return y + z;
-
-/* comment start */
-x = x + 1;
-y = y + 2;
-/* comment end */
-
-int contador;
-contador = 123;
-contador = contador + 456;
-contador = contador - 789;
-
-void funcion;
-int variableLarga;
-variableLarga = contador + x + y + z;
-
-/* pruebas con muchos simbolos */
-if (x < y) {
-    result = result + 1;
-}
-
-if (x > y) {
-    result = result - 1;
-}
-
-arr[5] = (x);
-arr[6] = (y);
-arr[7] = (z);
-
-/* errores lexicos esperados abajo */
-a = 3abc;
-b = @;
-c = 12hola;
-d = x # y;
-e = 99zz;
-f = !;
+ID: solo letras
+NUM: solo dígitos
+Comentarios: /* ... */ (no anidados)
+Espacios: ignorados
+Símbolos dobles: <= >= == !=

@@ -11,6 +11,7 @@ if __name__ == "__main__":
     # Function to set the initial values of the global variables
     globales(programa, posicion, progLong)
     token, tokenString = getToken(True)
-
-    while (token != TokenType.ENDFILE):
+    tokens = 0
+    while (token != TokenType.ENDFILE and tokens < 1000000):
         token, tokenString = getToken()
+        tokens += 1

@@ -9,25 +9,26 @@ def getToken(imprime=True):
     lexema = ""
 
     table = [
-        # blank letter digit /  *  <  >  =  !  +  -  ;  ,  (  )  {  }  [  ] EOF other
-        [0,    2,    1,    3, 4, 5, 6, 7, 8, 9, 10, 11,
-            12, 13, 14, 15, 16, 17, 18, 19, 20],  # 0 START
-        [21,   21,   1,   21, 21, 21, 21, 21, 21, 21, 21, 21, 21,
-            21, 21, 21, 21, 21, 21, 21, 21],            # 1 IN_NUM
-        [22,    2,  22,   22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
-            22, 22, 22, 22, 22, 22, 22, 22],            # 2 IN_ID
-        [23,   23,  23,   23, 24, 23, 23, 23, 23, 23, 23, 23, 23,
-            23, 23, 23, 23, 23, 23, 23, 23],            # 3 SAW_SLASH
-        [25,   25,  25,   26, 25, 25, 25, 25, 25, 25, 25, 25, 25,
-            25, 25, 25, 25, 25, 25, 25, 25],            # 4 SAW_STAR
-        [27,   27,  27,   27, 27, 27, 27, 28, 27, 27, 27, 27, 27,
-            27, 27, 27, 27, 27, 27, 27, 27],            # 5 SAW_LT
-        [29,   29,  29,   29, 29, 29, 29, 30, 29, 29, 29, 29, 29,
-            29, 29, 29, 29, 29, 29, 29, 29],            # 6 SAW_GT
-        [31,   31,  31,   31, 31, 31, 31, 32, 31, 31, 31, 31, 31,
-            31, 31, 31, 31, 31, 31, 31, 31],            # 7 SAW_EQ
-        [20,   20,  20,   20, 20, 20, 20, 33, 20, 20, 20, 20, 20,
-            20, 20, 20, 20, 20, 20, 20, 20],            # 8 SAW_BANG
+        [0,   2,   1,  3, 20,  4,  5,  6,  7, 21, 22,
+            23, 24, 25, 26, 27, 28, 29, 30, 31,  90, ],
+        [40,   91,   1, 40, 40, 40, 40, 40, 40, 40, 40,
+            40, 40, 40, 40, 40, 40, 40, 40, 40,  91, ],
+        [41,   2,  92, 41, 41, 41, 41, 41, 41, 41, 41,
+            41, 41, 41, 41, 41, 41, 41, 41, 41,  92, ],
+        [42,   42,  42, 42,  8, 42, 42, 42, 42, 42, 42,
+            42, 42, 42, 42, 42, 42, 42, 42, 42,  90, ],
+        [43,   43,  43, 43, 43, 43, 43, 44, 43, 43, 43,
+            43, 43, 43, 43, 43, 43, 43, 43, 43,  90, ],
+        [45,   45,  45, 45, 45, 45, 45, 46, 45, 45, 45,
+            45, 45, 45, 45, 45, 45, 45, 45, 45,  90, ],
+        [47,   47,  47, 47, 47, 47, 47, 48, 47, 47, 47,
+            47, 47, 47, 47, 47, 47, 47, 47, 47,  90, ],
+        [93,   93,  93, 93, 93, 93, 93, 49, 93, 93, 93,
+            93, 93, 93, 93, 93, 93, 93, 93, 93,  90, ],
+        [8,   8,   8,  8,  9,  8,  8,  8,  8,  8,  8,
+            8,  8,  8,  8,  8,  8,  8,  8, 94,   8, ],
+        [8,   8,   8,  0,  9,  8,  8,  8,  8,  8,  8,
+            8,  8,  8,  8,  8,  8,  8,  8, 94,   8, ],
     ]
 
     digits = '0123456789'
@@ -101,86 +102,95 @@ def getToken(imprime=True):
 
         state = table[state][col]
 
-        if state in [0, 1, 2, 3, 4, 5, 6, 7, 8]:
+        if state in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
             globalTypes.posicion += 1
 
-        if state == 9:
+        if state == 0:
+            lexema = ""
+
+        if state == 20:
+            token = TokenType.TIMES
+            globalTypes.posicion += 1
+            if imprime:
+                print(f"Token: {token}, Lexema: *")
+            return token, lexema
+        elif state == 21:
             token = TokenType.PLUS
             globalTypes.posicion += 1
             if imprime:
                 print(f"Token: {token}, Lexema: +")
             return token, '+'
 
-        elif state == 10:
+        elif state == 22:
             token = TokenType.MINUS
             globalTypes.posicion += 1
             if imprime:
                 print(f"Token: {token}, Lexema: -")
             return token, '-'
 
-        elif state == 11:
+        elif state == 23:
             token = TokenType.SEMICOLON
             globalTypes.posicion += 1
             if imprime:
                 print(f"Token: {token}, Lexema: ;")
             return token, ';'
 
-        elif state == 12:
+        elif state == 24:
             token = TokenType.COMMA
             globalTypes.posicion += 1
             if imprime:
                 print(f"Token: {token}, Lexema: ,")
             return token, ','
 
-        elif state == 13:
+        elif state == 25:
             token = TokenType.LPAREN
             globalTypes.posicion += 1
             if imprime:
                 print(f"Token: {token}, Lexema: (")
             return token, '('
 
-        elif state == 14:
+        elif state == 26:
             token = TokenType.RPAREN
             globalTypes.posicion += 1
             if imprime:
                 print(f"Token: {token}, Lexema: )")
             return token, ')'
 
-        elif state == 15:
+        elif state == 27:
             token = TokenType.LBRACE
             globalTypes.posicion += 1
             if imprime:
                 print(f"Token: {token}," + " Lexema: {")
             return token, '{'
 
-        elif state == 16:
+        elif state == 28:
             token = TokenType.RBRACE
             globalTypes.posicion += 1
             if imprime:
                 print(f"Token: {token}," + "Lexema: }")
             return token, '}'
 
-        elif state == 17:
+        elif state == 29:
             token = TokenType.LBRACKET
             globalTypes.posicion += 1
             if imprime:
                 print(f"Token: {token}, Lexema: [")
             return token, '['
 
-        elif state == 18:
+        elif state == 30:
             token = TokenType.RBRACKET
             globalTypes.posicion += 1
             if imprime:
                 print(f"Token: {token}, Lexema: ]")
             return token, ']'
 
-        elif state == 21:
+        elif state == 40:
             token = TokenType.NUM
             if imprime:
                 print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
-        elif state == 22:
+        elif state == 41:
             reserved_words = {
                 "else": TokenType.ELSE,
                 "if": TokenType.IF,
@@ -198,41 +208,19 @@ def getToken(imprime=True):
                 print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
-        elif state == 23:
+        elif state == 42:
             token = TokenType.DIVIDE
             if imprime:
                 print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
-        elif state == 24:
-            token = TokenType.LCOMMENT
-            lexema += char
-            globalTypes.posicion += 1
-            if imprime:
-                print(f"Token: {token}, Lexema: {lexema}")
-            return token, lexema
-
-        elif state == 25:
-            token = TokenType.TIMES
-            if imprime:
-                print(f"Token: {token}, Lexema: {lexema}")
-            return token, lexema
-
-        elif state == 26:
-            token = TokenType.RCOMMENT
-            lexema += char
-            globalTypes.posicion += 1
-            if imprime:
-                print(f"Token: {token}, Lexema: {lexema}")
-            return token, lexema
-
-        elif state == 27:
+        elif state == 43:
             token = TokenType.LT
             if imprime:
                 print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
-        elif state == 28:
+        elif state == 44:
             token = TokenType.LTEQ
             lexema += char
             globalTypes.posicion += 1
@@ -240,13 +228,13 @@ def getToken(imprime=True):
                 print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
-        elif state == 29:
+        elif state == 45:
             token = TokenType.GT
             if imprime:
                 print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
-        elif state == 30:
+        elif state == 46:
             token = TokenType.GTEQ
             lexema += char
             globalTypes.posicion += 1
@@ -254,13 +242,13 @@ def getToken(imprime=True):
                 print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
-        elif state == 31:
+        elif state == 47:
             token = TokenType.ASSIGN
             if imprime:
                 print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
-        elif state == 32:
+        elif state == 48:
             token = TokenType.EQ
             lexema += char
             globalTypes.posicion += 1
@@ -268,7 +256,7 @@ def getToken(imprime=True):
                 print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
-        elif state == 33:
+        elif state == 49:
             token = TokenType.NEQ
             lexema += char
             globalTypes.posicion += 1
@@ -276,19 +264,31 @@ def getToken(imprime=True):
                 print(f"Token: {token}, Lexema: {lexema}")
             return token, lexema
 
-        elif state == 19:
+        elif state == 31:
             token = TokenType.ENDFILE
             if imprime:
                 print(f"Token: {token}, Lexema: $")
             return token, '$'
 
-        elif state == 20:
+        elif state >= 90:
             token = TokenType.ERROR
             globalTypes.posicion += 1
             if imprime:
                 message = f"Token: {token}, Lexema: {lexema}{char}"
                 print(f"Token: {token}, Lexema: {lexema}{char}")
                 print(' ' * (len(message)-1) + '^')
+                if state == 90:
+                    print("Error 90: Invalid character")
+                elif state == 91:
+                    print("Error 91: Faild while creating a number")
+                elif state == 92:
+                    print("Error 92: Faild while creating an id")
+                elif state == 93:
+                    print(f"Error 93: {char} can be after a '!'")
+                elif state == 94:
+                    print(f"Error 94: comment tag close missing")
+                    return TokenType.ENDFILE, lexema
+
             return token, lexema
 
         if state != 0:
