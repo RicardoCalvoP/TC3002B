@@ -1,4 +1,25 @@
-<div>
+<div align="center">
+
+<img src="https://wiki.labnuevoleon.mx/images/4/4b/Tec-de-monterrey-logo.png" alt="Gymiq logo" width="400"/>
+
+## INSTITUTO TECNOLÓGICO Y DE ESTUDIOS SUPERIORES DE MONTERREY
+
+**Campus Santa Fe**
+
+# Project 1
+
+### Desarrollo de aplicaciones avanzadas de ciencias computacionales
+
+**Group 501**
+
+Student
+Ricardo Alfredo Calvo Pérez - A01028889
+
+Professor
+Victor Manuel de la Cueva Hernández
+
+_April 2026_
+
 </div>
 
 <h4>DFA</h4>
@@ -103,3 +124,6 @@ node [shape = doublecircle]; 20; 21; 22; 23; 24; 25; 26; 27; 28; 29; 30; 31; 40;
 |    SAW_BANG     |   7   |  93   |   93   |  93   | 93  | 93  | 93  | 93  | 49  | 93  | 93  | 93  | 93  | 93  | 93  | 93  | 93  | 93  | 93  | 93  | 93  |  90   |
 |   IN_COMMENT    |   8   |   8   |   8    |   8   |  8  |  9  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  | 94  |   8   |
 | SEE_END_COMMENT |   9   |   8   |   8    |   8   |  0  |  9  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  | 94  |   8   |
+
+> !Note
+> If the DFA or State table doesn't look properly please consider checking the original file in Markdown here: [Original File](https://github.com/RicardoCalvoP/TC3002B/blob/master/Compilers/Proyect1/solution.md)
