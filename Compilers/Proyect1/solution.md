@@ -125,5 +125,5 @@ node [shape = doublecircle]; 20; 21; 22; 23; 24; 25; 26; 27; 28; 29; 30; 31; 40;
 |   IN_COMMENT    |   8   |   8   |   8    |   8   |  8  |  9  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  | 94  |   8   |
 | SEE_END_COMMENT |   9   |   8   |   8    |   8   |  0  |  9  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  |  8  | 94  |   8   |
 
-> !Note
+> [!NOTE]
 > If the DFA or State table doesn't look properly please consider checking the original file in Markdown here: [Original File](https://github.com/RicardoCalvoP/TC3002B/blob/master/Compilers/Proyect1/solution.md)
