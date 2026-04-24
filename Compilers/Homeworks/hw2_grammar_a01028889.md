@@ -104,6 +104,8 @@ Escriba derivaciones por la izquierda, árboles de análisis gramatical y árbol
 
 1. `3 + 4 * 5 - 6`
 
+#### Derivaciones por la izquierda
+
 $$
 \begin{array}{lcl}
 exp &\Rightarrow& exp\; opsuma\; term \\
@@ -126,6 +128,8 @@ exp &\Rightarrow& exp\; opsuma\; term \\
     &\Rightarrow& 3\; +\; 4\; * 5\; -\; 6 \\
 \end{array}
 $$
+
+#### Árboles de análisis gramatical
 
 ```mermaid
 graph TD
@@ -154,6 +158,8 @@ graph TD
     F4 --> n6["6"]
 ```
 
+#### Árboles sintácticos abstractos
+
 ```mermaid
 graph TD
     minus["-"] --> plus["+"]
@@ -167,6 +173,8 @@ graph TD
 ```
 
 2. `3 * (4 - 5 + 6)`
+
+#### Derivaciones por la izquierda
 
 $$
 \begin{array}{lcl}
@@ -194,6 +202,45 @@ exp &\Rightarrow& term \\
 \end{array}
 $$
 
+#### Árboles de análisis gramatical
+
+```mermaid
+graph TD
+    E["exp"] --> T["term"]
+
+    T --> T1["term"]
+    T --> opm["*"]
+    T --> Fp["factor"]
+
+    T1 --> F1["factor"]
+    F1 --> n3["número: 3"]
+
+    Fp --> P["(exp)"]
+    P --> E2["exp"]
+
+    E2 --> E3["exp"]
+    E2 --> plus["+"]
+    E2 --> T3["term"]
+
+    E3 --> E4["exp"]
+    E3 --> minus["-"]
+    E3 --> T2["term"]
+
+    E4 --> T4["term"]
+    T4 --> F4["factor"]
+    F4 --> n4["número: 4"]
+
+    T2 --> F5["factor"]
+    F5 --> n5["número: 5"]
+
+    T3 --> F6["factor"]
+    F6 --> n6["número: 6"]
+
+
+```
+
+#### Árboles sintácticos abstractos
+
 ```mermaid
 graph TD
     mult["*"] --> n3["3"]
@@ -207,6 +254,8 @@ graph TD
 ```
 
 3. `3 - (4 + 5 * 6)`
+
+#### Derivaciones por la izquierda
 
 $$
 \begin{array}{lcl}
@@ -233,6 +282,60 @@ exp &\Rightarrow& exp\; opsuma\; term \\
     &\Rightarrow& 3\; -\; (4\; +\; 5\; * 6)\\
 \end{array}
 $$
+
+#### Árboles de análisis gramatical
+
+```mermaid
+graph TD
+    E["exp"] --> E1["exp"]
+    E --> OS1["opsuma"]
+    E --> T2["term"]
+
+    E1 --> T1["term"]
+    T1 --> F1["factor"]
+    F1 --> N3["número: 3"]
+
+    OS1 --> MINUS["-"]
+
+    T2 --> F2["factor"]
+    F2 --> P["(exp)"]
+    P --> E2["exp"]
+
+    E2 --> E3["exp"]
+    E2 --> OS2["opsuma"]
+    E2 --> T4["term"]
+
+    E3 --> T3["term"]
+    T3 --> F3["factor"]
+    F3 --> N4["número: 4"]
+
+    OS2 --> PLUS["+"]
+
+    T4 --> T5["term"]
+    T4 --> OM1["opmult"]
+    T4 --> F5["factor"]
+
+    T5 --> F4["factor"]
+    F4 --> N5["número: 5"]
+
+    OM1 --> MULT["*"]
+
+    F5 --> N6["número: 6"]
+```
+
+#### Árboles sintácticos abstractos
+
+```mermaid
+graph TD
+    MINUS["-"] --> N3["3"]
+    MINUS --> PLUS["+"]
+
+    PLUS --> N4["4"]
+    PLUS --> MULT["*"]
+
+    MULT --> N5["5"]
+    MULT --> N6["6"]
+```
 
 ---
 
