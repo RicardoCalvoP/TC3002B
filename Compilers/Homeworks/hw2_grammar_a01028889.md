@@ -355,7 +355,20 @@ rexp &\rightarrow& rexp\; "\mid"\; rexp \\
 $$
 
 1. Proporcione una derivación para la expresión regular `(a|b)*` utilizando esta gramática.
-1. Muestre que esta gramática es ambigua.
-1. Vuelva a escribir esta gramática para establecer las precedencias correctas para los operadores (véase el capítulo 2).
-1. ¿Qué asociatividad da su respuesta en el inciso c para los operadores binarios? Explique su respuesta.
+
+$$
+   \begin{array}{lcl}
+   &\mid& rexp\; "\*" \\
+   rexp &\mid& "("\; rexp\; ")"* \\
+   rexp &\mid& "("\; rexp\; "\mid"\; rexp\; ")"* \\
+   rexp &\mid& "("\; letra\; "\mid"\; rexp\; ")"* \\
+   rexp &\mid& "("\; a\; "\mid"\; rexp\; ")"* \\
+   rexp &\mid& "("\; a\; "\mid"\; letra\; ")"* \\
+   rexp &\mid& "("\; a\; "\mid"\; b\; ")"* \\
+   \end{array}
+$$
+
+2. Muestre que esta gramática es ambigua.
+3. Vuelva a escribir esta gramática para establecer las precedencias correctas para los operadores (véase el capítulo 2).
+4. ¿Qué asociatividad da su respuesta en el inciso c para los operadores binarios? Explique su respuesta.
    $$
