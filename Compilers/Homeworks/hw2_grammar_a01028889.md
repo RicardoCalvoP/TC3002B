@@ -369,6 +369,27 @@ $$
 $$
 
 2. Muestre que esta gramática es ambigua.
+
+Para esta demostración vamos a usar la siguiente cadena `a|bs`
+
+$$
+   \begin{array}{lcl}
+   rexp &\rightarrow& rexp\ "\mid"\ rexp \\
+   rexp &\rightarrow& a\ "\mid"\ rexp \\
+   rexp &\rightarrow& a\ "\mid"\ rexp\ rexp \\
+   rexp &\rightarrow& a\ "\mid"\ b\ c \\
+   \end{array}
+$$
+
+$$
+   \begin{array}{lcl}
+   rexp &\rightarrow& rexp\ rexp \\
+   rexp &\rightarrow& rexp\ "\mid"\ rexp\ rexp \\
+   rexp &\rightarrow& a\ "\mid"\ rexp\ rexp \\
+   rexp &\rightarrow& a\ "\mid"\ b\ c \\
+   \end{array}
+$$
+
 3. Vuelva a escribir esta gramática para establecer las precedencias correctas para los operadores (véase el capítulo 2).
 4. ¿Qué asociatividad da su respuesta en el inciso c para los operadores binarios? Explique su respuesta.
    $$
