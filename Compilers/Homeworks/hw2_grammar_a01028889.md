@@ -28,7 +28,9 @@ a. Escriba una gramática no ambigua que genere el conjunto de cadenas
 
 $${ s;,\space s;s;,\space s;s;s;,\space s;s;s;s;, \dots}$$
 
-b. Dé una derivación por la izquierda y por la derecha para la cadena `s;s` utilizando su gramática.
+$$S \rightarrow s;|s;  S$$
+
+b. Dé una derivación por la izquierda y por la derecha para la cadena `s;s;` utilizando su gramática.
 
 ---
 
