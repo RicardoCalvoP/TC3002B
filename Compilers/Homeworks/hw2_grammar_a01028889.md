@@ -244,13 +244,13 @@ graph TD
 ```mermaid
 graph TD
     mult["*"] --> n3["3"]
-    mult --> plus["+"]
+    mult --> minus["-"]
 
-    plus --> minus["-"]
-    plus --> n6["6"]
-
+    minus --> plus["+"]
     minus --> n4["4"]
-    minus --> n5["5"]
+
+    plus --> n5["5"]
+    plus --> n6["6"]
 ```
 
 3. `3 - (4 + 5 * 6)`
@@ -358,13 +358,13 @@ $$
 
 $$
    \begin{array}{lcl}
-   &\mid& rexp\; "\*" \\
-   rexp &\mid& "("\; rexp\; ")"* \\
-   rexp &\mid& "("\; rexp\; "\mid"\; rexp\; ")"* \\
-   rexp &\mid& "("\; letra\; "\mid"\; rexp\; ")"* \\
-   rexp &\mid& "("\; a\; "\mid"\; rexp\; ")"* \\
-   rexp &\mid& "("\; a\; "\mid"\; letra\; ")"* \\
-   rexp &\mid& "("\; a\; "\mid"\; b\; ")"* \\
+   rexp &\mid& rexp\ "\*" \\
+   &\Rightarrow& "("\ rexp ")"* \\
+   &\Rightarrow& "("\ rexp\ "\mid"\ rexp\ ")"* \\
+   &\Rightarrow& "("\ letra\ "\mid"\ rexp\ ")"* \\
+   &\Rightarrow& "("\ a\ "\mid"\ rexp\ ")"* \\
+   &\Rightarrow& "("\ a\ "\mid"\ letra\ ")"* \\
+   &\Rightarrow& "("\ a\ "\mid"\ b\ ")"* \\
    \end{array}
 $$
 
