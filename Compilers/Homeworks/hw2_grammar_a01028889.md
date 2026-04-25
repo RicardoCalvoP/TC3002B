@@ -370,7 +370,7 @@ $$
 
 2. Muestre que esta gramática es ambigua.
 
-Para esta demostración vamos a usar la siguiente cadena `a|bs`
+Para esta demostración vamos a usar la siguiente cadena `a|bc`
 
 $$
    \begin{array}{lcl}
@@ -391,5 +391,20 @@ $$
 $$
 
 3. Vuelva a escribir esta gramática para establecer las precedencias correctas para los operadores (véase el capítulo 2).
+
+$$
+\begin{array}{lcl}
+rexp &\rightarrow& rexp\ "\mid"\ C\ \mid\ C \\
+C &\rightarrow& C\ R\ \mid\ R \\
+R &\rightarrow& R\ "*"\ \mid\ B \\
+B &\rightarrow& "("\ rexp\ ")"\ \mid\ letra \\
+\end{array}
+$$
+
 4. ¿Qué asociatividad da su respuesta en el inciso c para los operadores binarios? Explique su respuesta.
-   $$
+
+ya que tenemos que separar las condiciones de ls combinación de operadores, hacemos que la grámatica sea recursiva por la izquierda, de esta manera los operadores
+son asociativos por la izquierda.
+
+> [!NOTE]
+> If the DFA or State table doesn't look properly please consider checking the original file in Markdown here: [Original File](https://github.com/RicardoCalvoP/TC3002B/blob/master/Compilers/Homeworks/hw2_grammar_a01028889.md)
