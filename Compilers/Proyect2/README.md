@@ -10,7 +10,7 @@ Create a program in Python, called `Parser.py` that contains a function called `
 Use the Top-Down Recursive Descent algorithm. Your function, when it needs the next token, will call your function `getToken`, that you implemented in your `lexer`.
 
 The program `Parser.py`, at the beginning, must import the file that contains the `lexer`:
-`from lexer import \*`
+`from lexer import *`
 
 Afterwards, it will continue with the definition of the function `parser(print = true)` and all the auxiliary functions that it requires.
 

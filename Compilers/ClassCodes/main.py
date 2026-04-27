@@ -2,5 +2,5 @@ import os
 from AST import *
 
 if __name__ == "__main__":
-    factor()
+    run_AST()
     os.system('cls' if os.name == 'nt' else 'clear')

@@ -99,13 +99,12 @@ def factor():
     return t
 
 
-def run_AST():
-    string = input("Write an expression: ")
-    pos = 0
-    token = string[pos]
-    AST = exp()
-    endentation = 0
-    if token != '$':
-        syntax_error('Code ends before file')
-    else:
-        print_AST(AST)
+string = input("Write an expression: ")
+pos = 0
+token = string[pos]
+AST = exp()
+endentation = 0
+if token != '$':
+    syntax_error('Code ends before file')
+else:
+    print_AST(AST)

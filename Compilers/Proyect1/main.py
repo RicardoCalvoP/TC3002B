@@ -2,7 +2,11 @@ from globalTypes import *
 from lexer import *
 import os
 if __name__ == "__main__":
-    f = open('sample.c-', 'r')
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    file_path = os.path.join(script_dir, "sample.c-")
+
+    f = open(file_path, 'r')
     programa = f.read()
     progLong = len(programa)
     programa = programa + '$'
