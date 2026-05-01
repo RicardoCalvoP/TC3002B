@@ -1,3 +1,4 @@
+from Proyect1.lexer import *
 import os
 import sys
 from enum import Enum
@@ -5,17 +6,32 @@ from enum import Enum
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
 
-from Proyect1.lexer import *
 
 """
 ---------------------------------------------------
 AST node building
 ---------------------------------------------------
 """
+
+
 class TypeExpression(Enum):
-    Op = 0
-    Const = 1
-    Id = 2
+    Program = 0
+    VarDeclaration = 1
+    FunDeclaration = 2
+    Param = 3
+    Compound = 4
+    If = 5
+    While = 6
+    Return = 7
+    ExpressionStmt = 8
+
+    Assign = 9
+    Op = 10
+    Const = 11
+    Id = 12
+    Call = 13
+
+    ArrayId = 14
 
 
 class TreeNode:
@@ -23,20 +39,26 @@ class TreeNode:
         self.left_child = None
         self.right_child = None
         self.exp = None
-        self.op = None
-        self.val = None
+
         self.name = None
+        self.val = None
+        self.op = None
+        self.type = None
+        self.is_array = False
 
 
 def new_node(type_expression):
     node = TreeNode()
     node.exp = type_expression
     return node
+
+
 """
 ---------------------------------------------------
 Parser helpers
 ---------------------------------------------------
 """
+
 
 def advance_token():
     global token, lexema
@@ -51,38 +73,47 @@ def match(expected_token):
     syntax_error(f"Token inesperado. Se esperaba {expected_token}")
     return False
 
+
 """
 ---------------------------------------------------
 Grammar rules
 ---------------------------------------------------
 """
 
+
 def program():
     # program -> declaration_list
     declaration_list()
 
-def declaration_list(something="to be decalred"):
-    # declaration_list -> declaration_list declaration | declaration
-    declaration(something)
-    while token in [TokenType.INT, TokenType.VOID]:
-        declaration(something)
 
-def declaration(something="to be decalred"):
+def declaration_list():
+    # declaration_list -> declaration_list declaration | declaration
+    declaration()
+    while token in [TokenType.INT, TokenType.VOID]:
+        declaration()
+
+
+def declaration():
     # declaration -> var_declaration | fun_declaration
-    if something:
+    type_specifier()
+    match(TokenType.ID)
+    if token in [TokenType.SEMICOLON, TokenType.LBRACKET]:
         var_declaration()
-    else:
+    elif token == TokenType.LPAREN:
         fun_declaration()
+    else:
+        syntax_error("Expected ;, [, or ( after declaration ID")
+
 
 def var_declaration():
     # var_declaration -> type_specifier ID ; | type_specifier ID [ NUM ] ;
-    type_specifier()
-    match(TokenType.ID)
+
     if token == TokenType.LBRACKET:
         match(TokenType.LBRACKET)
         match(TokenType.NUM)
         match(TokenType.RBRACKET)
     match(TokenType.SEMICOLON)
+
 
 def type_specifier():
     # type_specifier -> int | void
@@ -94,14 +125,14 @@ def type_specifier():
         syntax_error("Tipo de dato inesperado")
         advance_token()
 
+
 def fun_declaration():
     # fun_declaration -> type_specifier ID ( params ) compound_stmt
-    type_specifier()
-    match(TokenType.ID)
     match(TokenType.LPAREN)
     params()
     match(TokenType.RPAREN)
     compound_stmt()
+
 
 def params():
     # params -> param_list | void
@@ -110,13 +141,14 @@ def params():
     else:
         param_list()
 
+
 def param_list():
     # param_list -> param_list , param | param
     param()
-    if token == TokenType.COMMA:
-        while token == TokenType.COMMA:
-            match(TokenType.COMMA)
-            param()
+    while token == TokenType.COMMA:
+        match(TokenType.COMMA)
+        param()
+
 
 def param():
     # param -> type_specifier ID | type_specifier ID [ ]
@@ -126,6 +158,7 @@ def param():
         match(TokenType.LBRACKET)
         match(TokenType.RBRACKET)
 
+
 def compound_stmt():
     # compound_stmt -> { local_declarations statement_list }
     match(TokenType.LBRACE)
@@ -133,19 +166,26 @@ def compound_stmt():
     statement_list()
     match(TokenType.RBRACE)
 
+
 def local_declarations():
     # local_declarations -> local_declarations var_declaration | empty
     while token in [TokenType.INT, TokenType.VOID]:
+        type_specifier()
+        match(TokenType.ID)
         var_declaration()
+
 
 def statement_list():
     # statement_list -> statement_list statement | empty
-    while token in [TokenType.IF, TokenType.WHILE, TokenType.RETURN, TokenType.LBRACE, TokenType.ID]:
+    while token in [TokenType.IF, TokenType.WHILE, TokenType.RETURN,
+                    TokenType.LBRACE, TokenType.ID, TokenType.NUM,
+                    TokenType.LPAREN, TokenType.SEMICOLON]:
         statement()
+
 
 def statement():
     # statement -> expression_stmt | compound_stmt | selection_stmt | iteration_stmt | return_stmt
-    if token == TokenType.ID:
+    if token in [TokenType.ID, TokenType.NUM, TokenType.LPAREN, TokenType.SEMICOLON]:
         expression_stmt()
     elif token == TokenType.LBRACE:
         compound_stmt()
@@ -156,11 +196,13 @@ def statement():
     elif token == TokenType.RETURN:
         return_stmt()
 
+
 def expression_stmt():
     # expression_stmt -> expression ; | ;
     if token != TokenType.SEMICOLON:
         expression()
     match(TokenType.SEMICOLON)
+
 
 def selection_stmt():
     # selection_stmt -> if ( expression ) statement | if ( expression ) statement else statement
@@ -173,6 +215,7 @@ def selection_stmt():
         match(TokenType.ELSE)
         statement()
 
+
 def iteration_stmt():
     # iteration_stmt -> while ( expression ) statement
     match(TokenType.WHILE)
@@ -181,6 +224,7 @@ def iteration_stmt():
     match(TokenType.RPAREN)
     statement()
 
+
 def return_stmt():
     # return_stmt -> return ; | return expression ;
     match(TokenType.RETURN)
@@ -188,30 +232,43 @@ def return_stmt():
         expression()
     match(TokenType.SEMICOLON)
 
+
 def expression():
     # expression -> var = expression | simple_expression
     if token == TokenType.ID:
-        var()
-        if token == TokenType.ASSIGN:
-            match(TokenType.ASSIGN)
-            expression()
+        match(TokenType.ID)
+
+        if token == TokenType.LPAREN:
+            call()
+            simple_expression(after_first_token=True)
+
+        else:
+            var()
+            if token == TokenType.ASSIGN:
+                match(TokenType.ASSIGN)
+                expression()
+            else:
+                simple_expression(after_first_token=True)
+
     else:
         simple_expression()
 
+
 def var():
     # var -> ID | ID [ expression ]
-    match(TokenType.ID)
     if token == TokenType.LBRACKET:
         match(TokenType.LBRACKET)
         expression()
         match(TokenType.RBRACKET)
 
-def simple_expression():
+
+def simple_expression(after_first_token=False):
     # simple_expression -> additive_expression relop additive_expression | additive_expression
-    additive_expression()
+    additive_expression(after_first_token)
     if token in [TokenType.LESS, TokenType.LEQ, TokenType.GREATER, TokenType.GEQ, TokenType.EQ, TokenType.NEQ]:
         relop()
         additive_expression()
+
 
 def relop():
     # relop -> < | <= | > | >= | == | !=
@@ -221,12 +278,14 @@ def relop():
         syntax_error("Operador relacional inesperado")
         advance_token()
 
-def additive_expression():
+
+def additive_expression(after_first_token=False):
     # additive_expression -> additive_expression addop term  | term
-    term()
+    term(after_first_token)
     while token in [TokenType.PLUS, TokenType.MINUS]:
         addop()
         term()
+
 
 def addop():
     # addop -> + | -
@@ -236,12 +295,15 @@ def addop():
         syntax_error("Operador aditivo inesperado")
         advance_token()
 
-def term():
+
+def term(after_first_token=False):
     # term -> term mulop factor | factor
-    factor()
+    if not after_first_token:
+        factor()
     while token in [TokenType.TIMES, TokenType.DIVIDE]:
         mulop()
         factor()
+
 
 def mulop():
     # mulop -> * | /
@@ -251,6 +313,7 @@ def mulop():
         syntax_error("Operador multiplicativo inesperado")
         advance_token()
 
+
 def factor():
     # factor -> ( expression ) | var | call | NUM
     if token == TokenType.LPAREN:
@@ -258,21 +321,31 @@ def factor():
         expression()
         match(TokenType.RPAREN)
     elif token == TokenType.ID:
-        var()
+        match(TokenType.ID)
+        if token == TokenType.LBRACKET:
+            var()
+        elif token == TokenType.LPAREN:
+            call()
     elif token == TokenType.NUM:
         match(TokenType.NUM)
 
+    else:
+        syntax_error("Unexpected token in factor")
+        advance_token()
+
+
 def call():
     # call -> ID ( args )
-    match(TokenType.ID)
     match(TokenType.LPAREN)
     args()
     match(TokenType.RPAREN)
+
 
 def args():
     # args -> arg-list | empty
     if token != TokenType.RPAREN:
         arg_list()
+
 
 def arg_list():
     # arg_list -> arg-list , expression | expression
@@ -281,6 +354,7 @@ def arg_list():
         while token == TokenType.COMMA:
             match(TokenType.COMMA)
             expression()
+
 
 """
 ---------------------------------------------------
