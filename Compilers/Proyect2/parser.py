@@ -1,7 +1,17 @@
-from ..Proyect1.lexer import *
+import os
+import sys
 from enum import Enum
 
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
 
+from Proyect1.lexer import *
+
+"""
+---------------------------------------------------
+AST node building
+---------------------------------------------------
+"""
 class TypeExpression(Enum):
     Op = 0
     Const = 1
@@ -18,126 +28,311 @@ class TreeNode:
         self.name = None
 
 
-def new_node(type_):
+def new_node(type_expression):
     node = TreeNode()
-    if (node == None):
-        print("Memory is over")
-    else:
-        node.exp = type_
+    node.exp = type_expression
     return node
+"""
+---------------------------------------------------
+Parser helpers
+---------------------------------------------------
+"""
 
-
-def advance():
+def advance_token():
     global token, lexema
     token, lexema = getToken(False)
 
 
-def match(expected):
-    global token
-
-    if token == expected:
-        advance()
+def match(expected_token):
+    if token == expected_token:
+        advance_token()
         return True
+
+    syntax_error(f"Token inesperado. Se esperaba {expected_token}")
+    return False
+
+"""
+---------------------------------------------------
+Grammar rules
+---------------------------------------------------
+"""
+
+def program():
+    # program -> declaration_list
+    declaration_list()
+
+def declaration_list(something="to be decalred"):
+    # declaration_list -> declaration_list declaration | declaration
+    declaration(something)
+    while token in [TokenType.INT, TokenType.VOID]:
+        declaration(something)
+
+def declaration(something="to be decalred"):
+    # declaration -> var_declaration | fun_declaration
+    if something:
+        var_declaration()
     else:
-        syntax_error(f"Token inesperado. Se esperaba {expected}")
-        return False
+        fun_declaration()
 
+def var_declaration():
+    # var_declaration -> type_specifier ID ; | type_specifier ID [ NUM ] ;
+    type_specifier()
+    match(TokenType.ID)
+    if token == TokenType.LBRACKET:
+        match(TokenType.LBRACKET)
+        match(TokenType.NUM)
+        match(TokenType.RBRACKET)
+    match(TokenType.SEMICOLON)
 
-def exp():
-    t = term()
+def type_specifier():
+    # type_specifier -> int | void
+    if token == TokenType.INT:
+        match(TokenType.INT)
+    elif token == TokenType.VOID:
+        match(TokenType.VOID)
+    else:
+        syntax_error("Tipo de dato inesperado")
+        advance_token()
 
-    while token in [TokenType.PLUS, TokenType.MINUS]:
-        p = new_node(TypeExpression.Op)
-        p.left_child = t
-        p.op = lexema
-        t = p
+def fun_declaration():
+    # fun_declaration -> type_specifier ID ( params ) compound_stmt
+    type_specifier()
+    match(TokenType.ID)
+    match(TokenType.LPAREN)
+    params()
+    match(TokenType.RPAREN)
+    compound_stmt()
 
+def params():
+    # params -> param_list | void
+    if token == TokenType.VOID:
+        match(TokenType.VOID)
+    else:
+        param_list()
+
+def param_list():
+    # param_list -> param_list , param | param
+    param()
+    if token == TokenType.COMMA:
+        while token == TokenType.COMMA:
+            match(TokenType.COMMA)
+            param()
+
+def param():
+    # param -> type_specifier ID | type_specifier ID [ ]
+    type_specifier()
+    match(TokenType.ID)
+    if token == TokenType.LBRACKET:
+        match(TokenType.LBRACKET)
+        match(TokenType.RBRACKET)
+
+def compound_stmt():
+    # compound_stmt -> { local_declarations statement_list }
+    match(TokenType.LBRACE)
+    local_declarations()
+    statement_list()
+    match(TokenType.RBRACE)
+
+def local_declarations():
+    # local_declarations -> local_declarations var_declaration | empty
+    while token in [TokenType.INT, TokenType.VOID]:
+        var_declaration()
+
+def statement_list():
+    # statement_list -> statement_list statement | empty
+    while token in [TokenType.IF, TokenType.WHILE, TokenType.RETURN, TokenType.LBRACE, TokenType.ID]:
+        statement()
+
+def statement():
+    # statement -> expression_stmt | compound_stmt | selection_stmt | iteration_stmt | return_stmt
+    if token == TokenType.ID:
+        expression_stmt()
+    elif token == TokenType.LBRACE:
+        compound_stmt()
+    elif token == TokenType.IF:
+        selection_stmt()
+    elif token == TokenType.WHILE:
+        iteration_stmt()
+    elif token == TokenType.RETURN:
+        return_stmt()
+
+def expression_stmt():
+    # expression_stmt -> expression ; | ;
+    if token != TokenType.SEMICOLON:
+        expression()
+    match(TokenType.SEMICOLON)
+
+def selection_stmt():
+    # selection_stmt -> if ( expression ) statement | if ( expression ) statement else statement
+    match(TokenType.IF)
+    match(TokenType.LPAREN)
+    expression()
+    match(TokenType.RPAREN)
+    statement()
+    if token == TokenType.ELSE:
+        match(TokenType.ELSE)
+        statement()
+
+def iteration_stmt():
+    # iteration_stmt -> while ( expression ) statement
+    match(TokenType.WHILE)
+    match(TokenType.LPAREN)
+    expression()
+    match(TokenType.RPAREN)
+    statement()
+
+def return_stmt():
+    # return_stmt -> return ; | return expression ;
+    match(TokenType.RETURN)
+    if token != TokenType.SEMICOLON:
+        expression()
+    match(TokenType.SEMICOLON)
+
+def expression():
+    # expression -> var = expression | simple_expression
+    if token == TokenType.ID:
+        var()
+        if token == TokenType.ASSIGN:
+            match(TokenType.ASSIGN)
+            expression()
+    else:
+        simple_expression()
+
+def var():
+    # var -> ID | ID [ expression ]
+    match(TokenType.ID)
+    if token == TokenType.LBRACKET:
+        match(TokenType.LBRACKET)
+        expression()
+        match(TokenType.RBRACKET)
+
+def simple_expression():
+    # simple_expression -> additive_expression relop additive_expression | additive_expression
+    additive_expression()
+    if token in [TokenType.LESS, TokenType.LEQ, TokenType.GREATER, TokenType.GEQ, TokenType.EQ, TokenType.NEQ]:
+        relop()
+        additive_expression()
+
+def relop():
+    # relop -> < | <= | > | >= | == | !=
+    if token in [TokenType.LESS, TokenType.LEQ, TokenType.GREATER, TokenType.GEQ, TokenType.EQ, TokenType.NEQ]:
         match(token)
+    else:
+        syntax_error("Operador relacional inesperado")
+        advance_token()
 
-        t.right_child = term()
+def additive_expression():
+    # additive_expression -> additive_expression addop term  | term
+    term()
+    while token in [TokenType.PLUS, TokenType.MINUS]:
+        addop()
+        term()
 
-    return t
-
+def addop():
+    # addop -> + | -
+    if token in [TokenType.PLUS, TokenType.MINUS]:
+        match(token)
+    else:
+        syntax_error("Operador aditivo inesperado")
+        advance_token()
 
 def term():
-    t = factor()
-
+    # term -> term mulop factor | factor
+    factor()
     while token in [TokenType.TIMES, TokenType.DIVIDE]:
-        p = new_node(TypeExpression.Op)
-        p.left_child = t
-        p.op = lexema
-        t = p
+        mulop()
+        factor()
 
+def mulop():
+    # mulop -> * | /
+    if token in [TokenType.TIMES, TokenType.DIVIDE]:
         match(token)
-
-        t.right_child = factor()
-
-    return t
-
+    else:
+        syntax_error("Operador multiplicativo inesperado")
+        advance_token()
 
 def factor():
-    if token == TokenType.NUM:
-        t = new_node(TypeExpression.Const)
-        t.val = lexema
-        match(TokenType.NUM)
-        return t
-
-    elif token == TokenType.ID:
-        t = new_node(TypeExpression.Id)
-        t.name = lexema
-        match(TokenType.ID)
-        return t
-
-    elif token == TokenType.LPAREN:
+    # factor -> ( expression ) | var | call | NUM
+    if token == TokenType.LPAREN:
         match(TokenType.LPAREN)
-        t = exp()
+        expression()
         match(TokenType.RPAREN)
-        return t
+    elif token == TokenType.ID:
+        var()
+    elif token == TokenType.NUM:
+        match(TokenType.NUM)
 
-    else:
-        syntax_error("Token inesperado en factor")
-        advance()
-        return None
+def call():
+    # call -> ID ( args )
+    match(TokenType.ID)
+    match(TokenType.LPAREN)
+    args()
+    match(TokenType.RPAREN)
+
+def args():
+    # args -> arg-list | empty
+    if token != TokenType.RPAREN:
+        arg_list()
+
+def arg_list():
+    # arg_list -> arg-list , expression | expression
+    expression()
+    if token == TokenType.COMMA:
+        while token == TokenType.COMMA:
+            match(TokenType.COMMA)
+            expression()
+
+"""
+---------------------------------------------------
+Prints
+---------------------------------------------------
+"""
 
 
 def print_spaces():
-    print(' '*endentation, end='')
+    print(" " * indentation, end="")
 
 
-def syntax_error(msg, line):
-    print(">>> syntax error:", msg, "in line", line)
+def syntax_error(msg):
+    print(">>> syntax error:", msg)
     print("Token actual:", token)
     print("Lexema actual:", lexema)
 
 
 def print_AST(tree):
-    global endentation
-    endentation += 2
-    if tree != None:
+    global indentation
+
+    indentation += 2
+
+    if tree is not None:
         print_spaces()
+
         if tree.exp == TypeExpression.Op:
-            print('Op: ', tree.op)
+            print("Op:", tree.op)
         elif tree.exp == TypeExpression.Const:
-            print('Const: ', tree.val)
+            print("Const:", tree.val)
+        elif tree.exp == TypeExpression.Id:
+            print("Id:", tree.name)
         else:
-            print('ExpNode of this type unknown')
+            print("ExpNode of this type unknown")
+
         print_AST(tree.left_child)
         print_AST(tree.right_child)
-    endentation -= 2
+
+    indentation -= 2
 
 
 def parser(imprime=True):
     global token, lexema, indentation
 
     indentation = 0
-    advance()
+    advance_token()
 
-    AST = exp()
+    AST = program()
 
     if token != TokenType.ENDFILE:
         syntax_error("Code ends before file")
-    else:
-        if imprime:
-            print_AST(AST)
+    elif imprime:
+        print_AST(AST)
 
     return AST

@@ -1,5 +1,5 @@
-import globalTypes
-from globalTypes import TokenType
+from Proyect1 import globalTypes
+from Proyect1.globalTypes import TokenType
 
 
 def getToken(imprime=True):
