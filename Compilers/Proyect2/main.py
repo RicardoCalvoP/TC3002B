@@ -1,11 +1,9 @@
-from parser import *
 from Proyect1.globalTypes import globales
+from Proyect2.parser import *
 import os
 import sys
-
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
-
 
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))

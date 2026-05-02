@@ -1,3 +1,16 @@
-(a + b) * (c - 3) / d + 5
-3 + 4 * 5
-((x + 2) * (y - 3)) / (z + 1)
+int main(void) {
+    int x;
+    x = 7 + (1 - 2) + 6;
+
+    if (x > 5) {
+        x = x - 1;
+    } else {
+        x = x + 1;
+    }
+
+    while (x < 10) {
+        x = x + 1;
+    }
+
+    return x;
+}
