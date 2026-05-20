@@ -13,15 +13,6 @@ class Symbol:
         self.params = params or []
         self.lineno = lineno
 
-    def __repr__(self):
-        if self.kind == 'function':
-            param_str = ', '.join(
-                f"{p.type_}{'[]' if p.kind == 'array' else ''}" for p in self.params
-            )
-            return f"[{self.kind}] {self.type_} {self.name}({param_str})"
-        suffix = '[]' if self.kind == 'array' else ''
-        return f"[{self.kind}] {self.type_} {self.name}{suffix}"
-
 
 class Table:
     def __init__(self, scope_name, parent=None):
@@ -97,7 +88,7 @@ def _collect_params(param_node):
         if param_node.name is not None:
             # Leaf: this node IS the parameter
             kind = 'array' if param_node.is_array else 'var'
-            return [Symbol(param_node.name, kind, param_node.type)]
+            return [Symbol(param_node.name, kind, param_node.type_)]
         else:
             # Chain node: gather left side + right side
             return (_collect_params(param_node.left_child) +
@@ -121,7 +112,7 @@ def _build_table(node, scope):
         if node.name is not None:
             # Leaf declaration node
             kind = 'array' if node.is_array else 'var'
-            symbol = Symbol(node.name, kind, node.type)
+            symbol = Symbol(node.name, kind, node.type_)
             if not scope.define(symbol):
                 print(f"Error: '{node.name}' ya fue declarado en este ámbito")
         else:
@@ -137,7 +128,7 @@ def _build_table(node, scope):
 
         # 2. Register the function itself in the CURRENT (outer) scope
         fun_sym = Symbol(node.name, 'function',
-                         node.type, params=param_symbols)
+                         node.type_, params=param_symbols)
         if not scope.define(fun_sym):
             print(f"Error: función '{node.name}' ya fue declarada")
 
