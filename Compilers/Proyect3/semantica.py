@@ -5,6 +5,10 @@ from Proyect1.globalTypes import *
 from Proyect2.parser import *
 
 
+# ---------------------------------------------------------------------------
+# Symbol
+# ---------------------------------------------------------------------------
+
 class Symbol:
     def __init__(self, name, kind, type_, params=None, lineno=0):
         self.name = name
@@ -23,21 +27,26 @@ class Symbol:
         return f"[{self.kind}] {self.type_} {self.name}{suffix}"
 
 
+# ---------------------------------------------------------------------------
+# Table  (one scope's symbol dictionary)
+# ---------------------------------------------------------------------------
+
 class Table:
     def __init__(self, scope_name, parent=None):
-        self.symbols = {}
         self.scope_name = scope_name
         self.parent = parent
+        self.symbols = {}
         self.children = []
 
     def define(self, symbol: Symbol):
+        """Add symbol; return False if already declared in THIS scope."""
         if symbol.name in self.symbols:
             return False
-
         self.symbols[symbol.name] = symbol
         return True
 
     def lookup(self, name):
+        """Search this scope, then walk up the parent chain."""
         result = self.symbols.get(name)
         if result is not None:
             return result
@@ -46,20 +55,23 @@ class Table:
         return None
 
 
+# ---------------------------------------------------------------------------
+# Scope  (stack manager)
+# ---------------------------------------------------------------------------
+
 class Scope:
     def __init__(self):
         self.global_scope = Table("global")
         self.current = self.global_scope
-        # Pre-load built-in functions  input() and output()
-        self._scopes()
+        self._preload_builtins()
 
-    def _scopes(self):
-        input_symbol = Symbol(
-            name="input", kind="function", type_="int", params=[])
-        output_symbol = Symbol(
-            name="output", kind="function", type_="void", params=[Symbol("x", "var", "int")])
-        self.global_scope.define(input_symbol)
-        self.global_scope.define(output_symbol)
+    def _preload_builtins(self):
+        """Pre-load C- built-in functions: input() and output()."""
+        self.global_scope.define(
+            Symbol("input",  "function", "int",  params=[]))
+        self.global_scope.define(
+            Symbol("output", "function", "void",
+                   params=[Symbol("x", "var", "int")]))
 
     def enter_scope(self, scope_name):
         new_scope = Table(scope_name, parent=self.current)
@@ -78,114 +90,415 @@ class Scope:
 
 
 # ---------------------------------------------------------------------------
-# Helpers for tabla
+# Pass 1 helpers
 # ---------------------------------------------------------------------------
 
 def _collect_params(param_node):
     """
-    Walk the param / param_list sub-tree and return a flat list of Symbols.
+    Flatten the param / param_list sub-tree into a list of Symbols.
 
-    The parser builds param_list as a chain:
-        Param node with name=None  ->  left_child = previous params
-                                       right_child = one leaf param
-    A leaf param node has name set directly.
+    Parser structure:
+      - Leaf Param  : name is set, represents one parameter.
+      - Chain Param : name is None, left_child = earlier params,
+                      right_child = next leaf param.
     """
     if param_node is None:
         return []
 
-    if param_node.exp == TypeExpression.Param:
-        if param_node.name is not None:
-            # Leaf: this node IS the parameter
-            kind = 'array' if param_node.is_array else 'var'
-            return [Symbol(param_node.name, kind, param_node.type)]
-        else:
-            # Chain node: gather left side + right side
-            return (_collect_params(param_node.left_child) +
-                    _collect_params(param_node.right_child))
+    if param_node.exp != TypeExpression.Param:
+        return []
 
-    return []
+    if param_node.name is not None:
+        # Leaf: one real parameter
+        kind = 'array' if param_node.is_array else 'var'
+        # .type NOT .type_
+        return [Symbol(param_node.name, kind, param_node.type)]
+    else:
+        # Chain: gather both sides
+        return (_collect_params(param_node.left_child) +
+                _collect_params(param_node.right_child))
 
 
-def _build_table(node, scope):
-    """
-    Recursively walk the AST and populate symbol tables.
-    Detects duplicate declarations and reports them.
-    """
+def _build_table(node, scope, enter_compound=False):
+
     if node is None:
         return
 
     exp = node.exp
 
+    # --- Program: spine linking top-level declarations ----------------------
+    if exp == TypeExpression.Program:
+        _build_table(node.left_child,  scope)
+        _build_table(node.right_child, scope)
+
     # --- Variable declaration -----------------------------------------------
-    if exp == TypeExpression.VarDeclaration:
+    elif exp == TypeExpression.VarDeclaration:
         if node.name is not None:
-            # Leaf declaration node
+            # Leaf: real declaration
             kind = 'array' if node.is_array else 'var'
-            symbol = Symbol(node.name, kind, node.type)
+            symbol = Symbol(node.name, kind, node.type)   # .type NOT .type_
             if not scope.define(symbol):
-                print(f"Error: '{node.name}' ya fue declarado en este ámbito")
+                _reportar_error(
+                    node, f"'{node.name}' ya fue declarado en este ámbito")
         else:
-            # Wrapper node linking two declarations — recurse both sides
-            _build_table(node.left_child, scope)
+            # Wrapper chaining two declarations — recurse both sides
+            _build_table(node.left_child,  scope)
             _build_table(node.right_child, scope)
-        return
 
     # --- Function declaration -----------------------------------------------
-    if exp == TypeExpression.FunDeclaration:
-        # 1. Collect params before opening the function scope
+    elif exp == TypeExpression.FunDeclaration:
         param_symbols = _collect_params(node.left_child)
 
-        # 2. Register the function itself in the CURRENT (outer) scope
-        fun_sym = Symbol(node.name, 'function',
-                         node.type, params=param_symbols)
+        # Register function in the OUTER (current) scope
+        fun_sym = Symbol(node.name, 'function', node.type,   # .type NOT .type_
+                         params=param_symbols)
         if not scope.define(fun_sym):
-            print(f"Error: función '{node.name}' ya fue declarada")
+            _reportar_error(
+                node, f"Error semántico: función '{node.name}' ya fue declarada")
 
-        # 3. Open a new scope for the function body
+        # Open a new scope named after the function
         scope.enter_scope(node.name)
 
-        # 4. Register each parameter inside the function scope
+        # Register parameters inside the function scope
         for p in param_symbols:
             scope.define(p)
 
-        # 5. Visit the function body (right_child = compound_stmt)
-        _build_table(node.right_child, scope)
+        # Visit the function body — right_child is always a real { } block
+        _build_table(node.right_child, scope, enter_compound=True)
 
         scope.exit_scope()
-        return
 
-    # --- Program spine (links multiple top-level declarations) --------------
+    # --- Compound statement -------------------------------------------------
+    elif exp == TypeExpression.Compound:
+        if enter_compound:
+            scope.enter_scope("bloque_local")
+
+            _build_table(node.left_child,  scope)
+            _build_table(node.right_child, scope)
+
+            scope.exit_scope()
+        else:
+            _build_table(node.left_child,  scope)
+            _build_table(node.right_child, scope)
+
+    # --- If statement -------------------------------------------------------
+    elif exp == TypeExpression.If:
+        # left_child  = condition expression
+        # right_child = then-statement (may be a Compound block)
+        # wrapper If  : left_child = original If, right_child = else-statement
+        _build_table(node.left_child,  scope)
+        # The then/else branches can be { } blocks — pass enter_compound
+        _build_table(node.right_child, scope,
+                     enter_compound=(node.right_child is not None and
+                                     node.right_child.exp == TypeExpression.Compound))
+
+    # --- While statement ----------------------------------------------------
+    elif exp == TypeExpression.While:
+        # left_child = condition, right_child = body statement
+        _build_table(node.left_child,  scope)
+        _build_table(node.right_child, scope,
+                     enter_compound=(node.right_child is not None and
+                                     node.right_child.exp == TypeExpression.Compound))
+
+    # --- Everything else (Return, Assign, Op, Id, ArrayId, Call, Const,
+    #     ExpressionStmt): just recurse — nothing to declare -------------------
+    else:
+        _build_table(node.left_child,  scope)
+        _build_table(node.right_child, scope)
+
+
+def _reportar_error(nodo, mensaje):
+
+    lineno = getattr(nodo, 'lineno', 0)
+
+    if lineno > 0:
+        print(f"Error semántico (línea {lineno}): {mensaje}")
+        from Proyect1 import globalTypes
+        prog = getattr(globalTypes, 'programa', None)
+        if prog:
+            lineas = prog.split('\n')
+            if 0 < lineno <= len(lineas):
+                print(lineas[lineno - 1])
+                print("^")
+    else:
+        # Si no hay línea en el nodo, solo muestra el error sin confundir con la línea 1
+        print(f"Error semántico: {mensaje}")
+
+    print("-" * 50)
+
+# ---------------------------------------------------------------------------
+# Pass 2: Type Checking and Inference Engine
+# ---------------------------------------------------------------------------
+
+
+def _check_types(node, scope, current_table=None, current_function_type=None):
+    """
+    Recorre recursivamente el AST validando tipos e inferiendo el tipo de las expresiones.
+    Retorna el tipo resultante de la expresión ('int', 'void' o None).
+    """
+    if node is None:
+        return None
+
+    # Al inicio de la pasada, inicializamos con la tabla global y limpiamos índices de recorrido
+    if current_table is None:
+        current_table = scope.global_scope
+
+        # Función interna para limpiar recursivamente los contadores de bloques hijos
+        def _reset_tables(table):
+            table._next_child_idx = 0
+            for child in table.children:
+                _reset_tables(child)
+        _reset_tables(current_table)
+
+    exp = node.exp
+
+    # --- Programa: Espina dorsal que enlaza declaraciones globales -----------
     if exp == TypeExpression.Program:
-        _build_table(node.left_child, scope)
-        _build_table(node.right_child, scope)
-        return
+        _check_types(node.left_child, scope,
+                     current_table, current_function_type)
+        _check_types(node.right_child, scope,
+                     current_table, current_function_type)
+        return None
 
-    # --- Compound statement (opens a nested block scope) --------------------
-    if exp == TypeExpression.Compound:
-        scope.enter_scope("block")
-        _build_table(node.left_child, scope)   # local declarations
-        _build_table(node.right_child, scope)  # statement list
-        scope.exit_scope()
-        return
+    # --- Declaración de Variables --------------------------------------------
+    elif exp == TypeExpression.VarDeclaration:
+        if node.name is None:  # Nodo conector/wrapper de encadenamiento
+            _check_types(node.left_child, scope,
+                         current_table, current_function_type)
+            _check_types(node.right_child, scope,
+                         current_table, current_function_type)
+        return None
 
-    # --- Everything else: just recurse into children ------------------------
-    _build_table(node.left_child, scope)
-    _build_table(node.right_child, scope)
+    # --- Declaración de Funciones: Cambiamos al scope de la función ---------
+    elif exp == TypeExpression.FunDeclaration:
+        next_table = None
+        for child in current_table.children:
+            if child.scope_name == node.name:
+                next_table = child
+                break
 
+        if next_table:
+            # Mandamos el cuerpo de la función a revisarse bajo su propia tabla
+            _check_types(node.right_child, scope, next_table,
+                         current_function_type=node.type)
+        return None
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
+    # --- Bloques Compuestos { } : Cambiamos al scope del bloque local --------
+    elif exp == TypeExpression.Compound:
+        next_table = current_table
+
+        # Avanzamos secuencialmente al bloque hijo correspondiente
+        if len(current_table.children) > 0:
+            idx = current_table._next_child_idx
+            if idx < len(current_table.children):
+                next_table = current_table.children[idx]
+                current_table._next_child_idx += 1
+
+        _check_types(node.left_child, scope, next_table, current_function_type)
+        _check_types(node.right_child, scope,
+                     next_table, current_function_type)
+        return None
+
+    # --- Constantes Numéricas -----------------------------------------------
+    elif exp == TypeExpression.Const:
+        return 'int'
+
+    # --- Identificadores (Variables Simples) --------------------------------
+    elif exp == TypeExpression.Id:
+        sym = current_table.lookup(node.name)
+        if sym is None:
+            _reportar_error(
+                node, f"El identificador '{node.name}' no ha sido declarado.")
+            return 'int'  # Recuperación
+        if sym.kind == 'function':
+            _reportar_error(
+                node, f"El identificador '{node.name}' es una función y no puede usarse como variable.")
+            return 'int'
+        if sym.kind == 'array':
+            _reportar_error(
+                node, f"El identificador de arreglo '{node.name}' requiere un índice.")
+            return 'int'
+        return sym.type_
+
+    # --- Arreglos con Índice (ArrayId) --------------------------------------
+    elif exp == TypeExpression.ArrayId:
+        sym = current_table.lookup(node.name)
+        tipo_idx = _check_types(node.left_child, scope,
+                                current_table, current_function_type)
+
+        if sym is None:
+            _reportar_error(
+                node, f"El arreglo '{node.name}' no ha sido declarado.")
+            return 'int'
+
+        if sym.kind != 'array':
+            _reportar_error(
+                node, f"El identificador '{node.name}' no es un arreglo.")
+
+        if tipo_idx != 'int':
+            _reportar_error(
+                node, f"El índice del arreglo '{node.name}' debe ser de tipo entero, se encontró '{tipo_idx}'.")
+
+        return sym.type_
+
+    # --- Operaciones Matemáticas y Lógicas (Op) -----------------------------
+    elif exp == TypeExpression.Op:
+        tipo_izq = _check_types(node.left_child, scope,
+                                current_table, current_function_type)
+        tipo_der = _check_types(node.right_child, scope,
+                                current_table, current_function_type)
+
+        if tipo_izq != 'int' or tipo_der != 'int':
+            _reportar_error(
+                node, f"Los operadores de '{node.op}' deben ser de tipo entero. Se encontró '{tipo_izq}' {node.op} '{tipo_der}'.")
+        return 'int'
+
+    # --- Asignaciones (Assign) ----------------------------------------------
+    elif exp == TypeExpression.Assign:
+        tipo_izq = _check_types(node.left_child, scope,
+                                current_table, current_function_type)
+        tipo_der = _check_types(node.right_child, scope,
+                                current_table, current_function_type)
+
+        if tipo_izq != 'int' or tipo_der != 'int':
+            _reportar_error(
+                node, f"No se puede asignar un valor de tipo '{tipo_der}' a una variable de tipo '{tipo_izq}'.")
+        return 'int'
+
+    # --- Sentencias de Retorno (Return) -------------------------------------
+    elif exp == TypeExpression.Return:
+        tipo_retornado = 'void'
+        # Cambiado a right_child para alinearse con tu AST
+        if node.right_child is not None:
+            tipo_retornado = _check_types(
+                node.right_child, scope, current_table, current_function_type)
+
+        if current_function_type is not None and tipo_retornado != current_function_type:
+            _reportar_error(
+                node, f"La función actual espera un retorno de tipo '{current_function_type}', pero se retornó '{tipo_retornado}'.")
+        return tipo_retornado
+
+    # --- Sentencias Condicionales (If) y Bucles (While) ---------------------
+    elif exp == TypeExpression.If or exp == TypeExpression.While:
+        # Si tu parser metió un If dentro de otro de forma estructural como conector:
+        if node.left_child is not None and node.left_child.exp == TypeExpression.If:
+            # Evaluamos recursivamente el sub-if pero no lo castigamos como un error de tipo condicional
+            _check_types(node.left_child, scope,
+                         current_table, current_function_type)
+            tipo_cond = 'int'  # Forzamos la recuperación para el contenedor
+        else:
+            tipo_cond = _check_types(
+                node.left_child, scope, current_table, current_function_type)
+
+        if tipo_cond != 'int':
+            _reportar_error(
+                node, f"La condición del '{exp.name.lower()}' debe ser de tipo entero, se encontró '{tipo_cond}'.")
+
+        _check_types(node.right_child, scope,
+                     current_table, current_function_type)
+        return None
+
+    # --- Llamadas a Funciones (Call) ----------------------------------------
+    elif exp == TypeExpression.Call:
+        sym = current_table.lookup(node.name)
+
+        # Extraer de forma recursiva todos los argumentos del subárbol de expresiones
+        argumentos_tipos = []
+
+        def _recolectar_argumentos(arg_node):
+            if arg_node is None:
+                return
+            # Si tu parser usa nodos ExpressionStmt u otros para enlazar listas de argumentos, los recorremos:
+            if arg_node.exp == TypeExpression.ExpressionStmt:
+                _recolectar_argumentos(arg_node.left_child)
+                _recolectar_argumentos(arg_node.right_child)
+            else:
+                # Es una expresión válida (Id, Const, Op, etc.)
+                t = _check_types(arg_node, scope, current_table,
+                                 current_function_type)
+                if t is not None:
+                    argumentos_tipos.append(t)
+
+        _recolectar_argumentos(node.left_child)
+
+        if sym is None:
+            _reportar_error(
+                node, f"La función '{node.name}' no ha sido declarada.")
+            return 'int'
+
+        if sym.kind != 'function':
+            _reportar_error(
+                node, f"El identificador '{node.name}' se está llamando como función pero es un(a) {sym.kind}.")
+            return 'int'
+
+        # Validar número de parámetros
+        if len(argumentos_tipos) != len(sym.params):
+            _reportar_error(
+                node, f"La función '{node.name}' requiere {len(sym.params)} argumentos, pero se pasaron {len(argumentos_tipos)}.")
+        else:
+            # Validar tipos de los parámetros
+            for i, tipo_arg in enumerate(argumentos_tipos):
+                tipo_param = sym.params[i].type_
+                if tipo_arg != tipo_param:
+                    _reportar_error(
+                        node, f"El argumento {i+1} de la función '{node.name}' debería ser '{tipo_param}', se recibió '{tipo_arg}'.")
+
+        return sym.type_
+
+    # --- Nodos estructurales (ExpressionStmt, conectores de bloques) -------
+    else:
+        _check_types(node.left_child, scope,
+                     current_table, current_function_type)
+        _check_types(node.right_child, scope,
+                     current_table, current_function_type)
+        return None
+
 
 def tabla(tree, imprime=True):
-    """
-    Build the symbol table(s) for the given AST.
-    Returns the Scope object containing the full scope hierarchy.
-    """
+
     scope = Scope()
     _build_table(tree, scope)
+
+    if imprime:
+        _print_scope(scope.global_scope)
+
     return scope
 
 
+def _print_scope(table, indent=0):
+    """Recursively print a Table and all its children."""
+    pad = "  " * indent
+    print(f"{pad}[ Scope: {table.scope_name} ]")
+    for sym in table.symbols.values():
+        print(f"{pad}  {sym}")
+    for child in table.children:
+        _print_scope(child, indent + 1)
+
+
 def semantica(tree, imprime=True):
-    pass
+    scope = tabla(tree, imprime=False)
+
+    _check_types(tree, scope)
+
+    if imprime:
+        print("=== Global scope ===")
+        for name, sym in scope.global_scope.symbols.items():
+            print(f"  {sym}")
+
+        print("\n=== gcd detail ===")
+        sym = scope.global_scope.lookup("gcd")
+        if sym is not None:
+            print(f"  name:   {sym.name}")
+            print(f"  kind:   {sym.kind}")
+            print(f"  type:   {sym.type_}")
+            print(f"  params: {sym.params}")
+        else:
+            print("  Función 'gcd' no encontrada en el ámbito global.")
+
+        print("\n=== Function scopes ===")
+        for child in scope.global_scope.children:
+            print(f"  Scope [{child.scope_name}]:")
+            for s in child.symbols.values():
+                print(f"    {s}")
+
+    return scope

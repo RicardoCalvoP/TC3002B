@@ -3,6 +3,7 @@ from Proyect1.globalTypes import globales
 from Proyect3.semantica import *
 import os
 import sys
+
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
 
@@ -20,27 +21,11 @@ if __name__ == "__main__":
 
     os.system("cls" if os.name == "nt" else "clear")
 
+    # Inicializar las variables globales
     globales(programa, posicion, progLong)
 
+    # 1. Ejecutar análisis sintáctico (Parser)
     AST = parser(False)
-    scope = tabla(AST, imprime=False)
 
-    # inspect global scope
-    print("=== Global scope ===")
-    for name, sym in scope.global_scope.symbols.items():
-        print(f"  {sym}")
-
-    # check a specific function in detail
-    print("\n=== gcd detail ===")
-    sym = scope.global_scope.lookup("gcd")
-    print(f"  name:   {sym.name}")
-    print(f"  kind:   {sym.kind}")
-    print(f"  type:   {sym.type_}")
-    print(f"  params: {sym.params}")
-
-    # inspect function-level scopes
-    print("\n=== Function scopes ===")
-    for child in scope.global_scope.children:
-        print(f"  Scope [{child.scope_name}]:")
-        for s in child.symbols.values():
-            print(f"    {s}")
+    # 2. Ejecutar análisis semántico (Construye tablas y realiza las impresiones)
+    scope = semantica(AST, imprime=True)
