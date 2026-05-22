@@ -34,6 +34,29 @@ Conexión con $MEX \rightarrow S0$ full duplex
 Conexión con $MEX \rightarrow MTY$
 `interface serial 0/0/0 172.16.17.6 255.255.255.252`
 
+**DHCP config**
+
+```text
+enable
+configure terminal
+ip dhcp excluded-address 10.10.10.254
+ip dhcp pool LAN_MEX
+ network 10.10.10.0 255.255.255.0
+ default-router 10.10.10.254
+exit
+
+
+```
+**OSPF config**
+
+```text
+router ospf 1
+ network 10.10.10.0 0.0.0.255 area 0
+ network 172.16.17.4 0.0.0.3 area 0
+exit
+
+```
+
 ### Router MTY
 
 Conexión con $MTY \rightarrow MEX$
@@ -45,6 +68,18 @@ Conexión con $MTY \rightarrow QRO$
 Conexión con $MTY \rightarrow PC-E$
 `interface gig 0/0 10.93.3.22 255.255.255.252`
 
+**OSPF config**
+
+```text
+router ospf 1
+ network 172.16.17.4 0.0.0.3 area 0
+ network 172.44.1.16 0.0.0.7 area 0
+ network 10.93.3.20 0.0.0.3 area 0
+exit
+
+
+```
+
 ### Router QRO
 
 Conexión con $QRO \rightarrow MTY$
@@ -53,6 +88,16 @@ Conexión con $QRO \rightarrow MTY$
 Conexión con $QRO \rightarrow GDG$
 `interface serial 0/1/0 172.16.3.9 255.255.255.252`
 
+**OSPF config**
+
+```text
+router ospf 1
+ network 172.44.1.16 0.0.0.7 area 0
+ network 172.16.3.8 0.0.0.3 area 0
+exit
+
+```
+
 ### Router GDG
 
 Conexión con $GDG \rightarrow S1$ full duplex
@@ -60,6 +105,29 @@ Conexión con $GDG \rightarrow S1$ full duplex
 
 Conexión con $GDG \rightarrow QRO$
 `interface serial 0/0/0 172.16.3.10 255.255.255.252`
+
+**DHCP config**
+
+```text
+enable
+configure terminal
+ip dhcp excluded-address 192.168.1.254
+ip dhcp pool LAN_GDG
+ network 192.168.1.0 255.255.255.0
+ default-router 192.168.1.254
+exit
+
+```
+
+**OSPF config**
+
+```text
+router ospf 1
+ network 192.168.1.0 0.0.0.255 area 0
+ network 172.16.3.8 0.0.0.3 area 0
+exit
+
+```
 
 ### PC-A, PC-B, PC-C, PC-D
 `IP Configuration: DHCP`
