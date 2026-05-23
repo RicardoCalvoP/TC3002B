@@ -37,8 +37,6 @@ Conexión con $MEX \rightarrow MTY$
 **DHCP config**
 
 ```text
-enable
-configure terminal
 ip dhcp excluded-address 10.10.10.254
 ip dhcp pool LAN_MEX
  network 10.10.10.0 255.255.255.0
@@ -57,8 +55,6 @@ exit
 **VPN IPsec config**
 
 ```text
-enable
-configure terminal
 
 license boot module c2900 technology-package securityk9
 
@@ -140,8 +136,6 @@ Conexión con $GDG \rightarrow QRO$
 **DHCP config**
 
 ```text
-enable
-configure terminal
 ip dhcp excluded-address 192.168.1.254
 ip dhcp pool LAN_GDG
  network 192.168.1.0 255.255.255.0
@@ -163,8 +157,6 @@ exit
 **VPN IPsec config**
 
 ```text
-enable
-configure terminal
 
 license boot module c2900 technology-package securityk9
 
