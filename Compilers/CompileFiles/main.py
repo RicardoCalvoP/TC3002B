@@ -26,8 +26,21 @@ if __name__ == "__main__":
     scope = tabla(AST, imprime=False)
 
     # inspect global scope
-    print(scope.global_scope.symbols)
+    print("=== Global scope ===")
+    for name, sym in scope.global_scope.symbols.items():
+        print(f"  {sym}")
 
-    # check a specific symbol
+    # check a specific function in detail
+    print("\n=== gcd detail ===")
     sym = scope.global_scope.lookup("gcd")
-    print(sym.kind, sym.type_, sym.params)
+    print(f"  name:   {sym.name}")
+    print(f"  kind:   {sym.kind}")
+    print(f"  type:   {sym.type_}")
+    print(f"  params: {sym.params}")
+
+    # inspect function-level scopes
+    print("\n=== Function scopes ===")
+    for child in scope.global_scope.children:
+        print(f"  Scope [{child.scope_name}]:")
+        for s in child.symbols.values():
+            print(f"    {s}")
