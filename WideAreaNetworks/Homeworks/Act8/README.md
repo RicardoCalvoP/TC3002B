@@ -37,14 +37,11 @@ Conexión con $MEX \rightarrow MTY$
 **DHCP config**
 
 ```text
-enable
-configure terminal
 ip dhcp excluded-address 10.10.10.254
 ip dhcp pool LAN_MEX
  network 10.10.10.0 255.255.255.0
  default-router 10.10.10.254
 exit
-
 
 ```
 **OSPF config**
@@ -54,7 +51,37 @@ router ospf 1
  network 10.10.10.0 0.0.0.255 area 0
  network 172.16.17.4 0.0.0.3 area 0
 exit
+```
+**VPN IPsec config**
 
+```text
+
+license boot module c2900 technology-package securityk9
+
+crypto isakmp policy 10
+ encr aes
+ authentication pre-share
+ group 2
+ exit
+crypto isakmp key MyKey address 172.16.3.10
+
+crypto ipsec transform-set ESP-AES-SHA esp-aes esp-sha-hmac
+ exit
+
+crypto map VPN-ENTIKUS 10 ipsec-isakmp
+ set peer 172.16.3.10
+ set transform-set ESP-AES-SHA
+ match address 100
+ exit
+
+interface Serial0/0/0
+ crypto map VPN-ENTIKUS
+ exit
+
+ip route 0.0.0.0 0.0.0.0 Serial0/0/0
+ exit
+
+write memory
 ```
 
 ### Router MTY
@@ -109,8 +136,6 @@ Conexión con $GDG \rightarrow QRO$
 **DHCP config**
 
 ```text
-enable
-configure terminal
 ip dhcp excluded-address 192.168.1.254
 ip dhcp pool LAN_GDG
  network 192.168.1.0 255.255.255.0
@@ -126,6 +151,39 @@ router ospf 1
  network 192.168.1.0 0.0.0.255 area 0
  network 172.16.3.8 0.0.0.3 area 0
 exit
+
+```
+
+**VPN IPsec config**
+
+```text
+
+license boot module c2900 technology-package securityk9
+
+crypto isakmp policy 10
+ encr aes
+ authentication pre-share
+ group 2
+ exit
+crypto isakmp key MyKey address 172.16.17.6
+
+crypto ipsec transform-set ESP-AES-SHA esp-aes esp-sha-hmac
+ exit
+
+crypto map VPN-ENTIKUS-DASH 10 ipsec-isakmp
+ set peer 172.16.17.6
+ set transform-set ESP-AES-SHA
+ match address 100
+ exit
+
+interface Serial0/0/0
+ crypto map VPN-ENTIKUS-DASH
+ exit
+
+ip route 0.0.0.0 0.0.0.0 Serial0/0/0
+ exit
+
+write memory
 
 ```
 
